@@ -17,12 +17,11 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 import categoriesWithSkills from "@/data/categoriesWithSkills";
-import React from "react";
+
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All Categories");
-  const [mounted, setMounted] = useState(false); // client-only
   const [showAllCategories, setShowAllCategories] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -41,11 +40,6 @@ export default function DashboardLayout({ children }) {
     { key: "profile", label: "Profile", icon: <FaUser size={18} /> },
   ];
 
-  // Client-only mount to avoid hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,13 +50,6 @@ export default function DashboardLayout({ children }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Pass sidebarOpen to children dynamically
-  const childrenWithSidebar = React.Children.map(children, (child) =>
-    React.isValidElement(child)
-      ? React.cloneElement(child, { sidebarOpen })
-      : child
-  );
 
   // Unified handler for category/skill click
   const handleCategorySearch = (category, skill = null) => {
@@ -89,7 +76,10 @@ export default function DashboardLayout({ children }) {
           <div className={`${sidebarOpen ? "text-black text-2xl font-bold tracking-wide" : "hidden"}`}>
             BlueCollorHub
           </div>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded hover:bg-gray-100 transition">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded hover:bg-gray-100 transition"
+          >
             {sidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
         </div>
@@ -129,41 +119,53 @@ export default function DashboardLayout({ children }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Top Navbar */}
-        <header className="flex justify-between items-center px-6 py-3 bg-white text-black shadow-md">
-          <div className="flex items-center gap-6">
-            <div className="text-2xl font-bold text-black tracking-wide">Blue</div>
-            <SearchBar />
-          </div>
+        <header className="flex items-center justify-between px-6 py-3 bg-white text-black shadow-md">
+          {/* Left: Logo + Location + Search */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="text-2xl font-bold tracking-wide flex-shrink-0">Blue</div>
 
-          <div className="flex items-center gap-4">
-            <select className={`${sidebarOpen ? "w-22" : "w-32"} border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-black text-black`}>
-              <option>EN</option>
-              <option>ES</option>
-              <option>FR</option>
-            </select>
 
-            <button
-              onClick={() => router.push("/dashboard/createpost")}
-              className="group flex items-center gap-2 px-6 py-2 rounded-full border border-black bg-black text-white"
-            >
-              <FaPlus className="transition-colors duration-300 text-white group-hover:text-black" />
-              <span className="transition-colors duration-300 text-white group-hover:text-black">Create</span>
-            </button>
-
-            <div className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer">
-              {user?.image ? (
-                <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white font-semibold text-lg">
-                  {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
-                </div>
-              )}
+            {/* Search */}
+            <div className="flex-1 min-w-0">
+              <SearchBar />
             </div>
           </div>
+
+          {/* Right: Language + Create + Profile */}
+<div className="flex items-center gap-3 flex-shrink-0">
+  {/* Language Selector */}
+  <select className="w-28 h-10 border border-gray-300 px-3 py-2 rounded-lg text-black flex-shrink-0">
+    <option>EN</option>
+    <option>ES</option>
+    <option>FR</option>
+  </select>
+
+  {/* Create Button */}
+  <button
+    onClick={() => router.push("/dashboard/createpost")}
+    className="group flex items-center gap-2 px-5 py-2 rounded-full border border-black bg-black text-white text-sm flex-shrink-0"
+  >
+    <FaPlus className="text-white group-hover:text-black transition" />
+    <span className="text-white group-hover:text-black transition">Create</span>
+  </button>
+
+  {/* Profile */}
+  <div className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer flex-shrink-0">
+    {user?.image ? (
+      <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+    ) : (
+      <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white font-semibold text-lg">
+        {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
+      </div>
+    )}
+  </div>
+</div>
+
         </header>
 
         {/* Sub Navbar */}
         <div className="flex gap-3 p-3 bg-gray-100 border-b border-gray-200 px-6 relative">
+          {/* All Categories Dropdown */}
           <div className="relative flex-shrink-0" ref={dropdownRef}>
             <button
               onClick={() => {
@@ -178,13 +180,12 @@ export default function DashboardLayout({ children }) {
             >
               All Categories ▾
             </button>
-            {showAllCategories && (
-              <CategoriesDropdown onSkillClick={handleCategorySearch} />
-            )}
+
+            {showAllCategories && <CategoriesDropdown onSkillClick={handleCategorySearch} />}
           </div>
 
           {/* Scrollable Categories */}
-          <div className="w-200 overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div className="w-225 overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
             <div className="flex gap-3 min-w-max" style={{ overflow: "hidden" }}>
               {categories
                 .filter((cat) => cat !== "All Categories")
@@ -212,15 +213,14 @@ export default function DashboardLayout({ children }) {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-6 relative">
-          {childrenWithSidebar}
-        </main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
 
-      {/* Chat Support Overlay */}
-      {mounted && activeSection === "chat" && (
-        <ChatSupport sidebarOpen={sidebarOpen} />
-      )}
+      {/* Chat Support */}
+      {/* Chat Support: only show on /dashboard/chat */}
+{pathname?.includes("/dashboard/chat") && <ChatSupport sidebarOpen={sidebarOpen} />}
+
+
     </div>
   );
 }
