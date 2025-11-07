@@ -1,0 +1,106 @@
+// src/data/categoriesWithSkills.js
+
+const categoriesWithSkills = {
+  "Construction & Home Services": [
+    "POP Designing",
+    "Electrician",
+    "Plumbing",
+    "Painting",
+    "Carpenter",
+    "Masonry",
+    "Granite / Tile Installation",
+    "Home Renovation Experts",
+  ],
+  "Mechanic & Vehicle Services": [
+    "Bike Mechanic",
+    "Car Mechanic",
+    "Auto Mechanic",
+    "Vehicle Painting / Bodywork Specialist",
+    "Tire & Wheel Specialist",
+  ],
+  "Weaving & Textile": [
+    "Handloom Weavers",
+    "Powerloom Weavers",
+    "Tailors / Stitching Experts",
+    "Embroidery & Custom Clothing Makers",
+    "Saree Weaving / Textile Designers",
+  ],
+  "Home & Personal Services": [
+    "Electricians (Household wiring & gadgets)",
+    "Plumbers",
+    "Painters / Decorators",
+    "Home Tutors / Trainers",
+    "Cleaning & Maintenance Specialists",
+  ],
+  "Digital & Technical Skills": [
+    "Graphic Designers",
+    "UI/UX Designers",
+    "Content Creators",
+    "Freelance Developers",
+  ],
+  "Driving & Transport Services": [
+    "Car Drivers",
+    "Bus Drivers",
+    "Truck Drivers",
+    "Delivery Drivers",
+    "Taxi / Ride-Hailing Drivers",
+  ],
+  "Security & Safety": [
+    "Security Guards",
+    "Watchmen",
+    "Event Security Personnel",
+    "Fire Safety Experts",
+    "Bodyguards",
+  ],
+  "Agriculture & Farming": [
+    "Farm Helpers",
+    "Tractor / Machine Operators",
+    "Irrigation Workers",
+    "Horticulturists",
+    "Livestock Caretakers",
+  ],
+  "Logistics & Labor": [
+    "Packers & Movers",
+    "Loaders / Unloaders",
+    "Warehouse Helpers",
+    "Couriers / Delivery Personnel",
+    "Inventory Managers",
+  ],
+  "Health & Wellness": [
+    "Personal Trainers / Fitness Coaches",
+    "Yoga / Meditation Instructors",
+    "Home Nurses / Caregivers",
+    "Physiotherapists",
+    "Dieticians / Nutritionists",
+  ],
+  "Events & Entertainment": [
+    "DJs / Musicians",
+    "Event Planners",
+    "Photographers / Videographers",
+    "Makeup Artists / Stylists",
+    "Performers / Artists",
+  ],
+  "Education & Tutoring": [
+    "Private Tutors (Math, Science, Languages)",
+    "Music Teachers",
+    "Art / Craft Instructors",
+    "Exam / Test Prep Coaches",
+    "Language Trainers",
+  ],
+  "Cleaning & Maintenance": [
+    "Home Cleaners",
+    "Commercial Cleaners",
+    "Pest Control Experts",
+    "Laundry Services",
+    "Garden / Lawn Maintenance",
+  ],
+  "IT & Digital Services": [
+    "Web / App Developers",
+    "Graphic Designers",
+    "UI/UX Designers",
+    "Digital Marketers",
+    "SEO / Content Specialists",
+  ],
+};
+
+export default categoriesWithSkills;

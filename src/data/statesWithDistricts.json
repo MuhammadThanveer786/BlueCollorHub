@@ -1,0 +1,64 @@
+{
+  "Andhra Pradesh": [
+    "Anantapur",
+    "Chittoor",
+    "East Godavari",
+    "Guntur",
+    "Krishna",
+    "Kurnool",
+    "Nellore",
+    "Prakasam",
+    "Srikakulam",
+    "Visakhapatnam",
+    "Vizianagaram",
+    "West Godavari",
+    "YSR Kadapa"
+  ],
+  "Arunachal Pradesh": [
+    "Anjaw",
+    "Changlang",
+    "Dibang Valley",
+    "East Kameng",
+    "East Siang",
+    "Kamle",
+    "Kra Daadi",
+    "Kurung Kumey",
+    "Lepa Rada",
+    "Lohit",
+    "Longding",
+    "Lower Dibang Valley"
+  ],
+  "Assam": [
+    "Baksa",
+    "Barpeta",
+    "Biswanath",
+    "Bongaigaon",
+    "Cachar",
+    "Charaideo",
+    "Chirang",
+    "Darrang"
+  ],
+  "Bihar": [
+    "Araria",
+    "Arwal",
+    "Aurangabad",
+    "Banka",
+    "Begusarai",
+    "Bhagalpur",
+    "Bhojpur",
+    "Buxar"
+  ],
+  "Goa": [
+    "North Goa",
+    "South Goa"
+  ],
+  "Karnataka": [
+    "Bagalkot",
+    "Bangalore Rural",
+    "Bangalore Urban",
+    "Belagavi",
+    "Ballari",
+    "Bidar",
+    "Chamarajanagar"
+  ]
+}

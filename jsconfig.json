@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],      // for src folder imports
+      "@lib/*": ["./lib/*"],   // for root-level lib folder
+      "@models/*": ["./models/*"]
+    }
+  }
+}
