@@ -5,7 +5,7 @@ import {
   FaBars, FaTimes, FaHome, FaHeart, FaComments, FaUser, FaPlus, FaSignOutAlt, FaBell
 } from "react-icons/fa";
 import CategoriesDropdown from "../components/CategoriesDropdown";
-import ChatSupport from "../components/ChatSupport";
+// ChatSupport is no longer imported or used here
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import SearchBar from "../components/SearchBar";
@@ -44,6 +44,7 @@ export default function DashboardLayout({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [unreadChatSenders, setUnreadChatSenders] = useState(new Set());
 
   const categories = ["All Categories", ...Object.keys(categoriesWithSkills)];
   const sidebarItems = [
@@ -87,11 +88,11 @@ export default function DashboardLayout({ children }) {
 
   const getNotificationMessage = (notif) => {
       switch (notif?.type) {
-          case 'like': return `liked your post${notif.postId?.title ? ` "${notif.postId.title}"` : ''}.`;
-          case 'comment': return `commented on your post${notif.postId?.title ? ` "${notif.postId.title}"` : ''}.`;
-          case 'rating': return `rated your post${notif.postId?.title ? ` "${notif.postId.title}"` : ''}.`;
-          case 'connect_request': return `sent you a connection request.`;
-          case 'connect_accept': return `accepted your connection request.`;
+          case 'like': return `liked your post.`;
+          case 'comment': return `commented on your post.`;
+          case 'rating': return `rated your post.`;
+          case 'connect_request': return `sent you a follow request.`;
+          case 'connect_accept': return `started following you.`;
           default: return 'sent you a notification.';
       }
   };
@@ -123,7 +124,7 @@ export default function DashboardLayout({ children }) {
           const response = await axios.post(`/api/user/accept/${senderId}`);
           if (response.data.success) {
               toast.success(`Connection accepted!`);
-              router.refresh(); // Refresh data after accepting
+              router.refresh();
           } else {
               toast.error(response.data.message || "Failed to accept connection.");
               setNotifications(originalNotifications);
@@ -146,15 +147,16 @@ export default function DashboardLayout({ children }) {
       try {
           const response = await axios.post(`/api/user/decline/${senderId}`);
           if (response.data.success) {
-              toast.info("Connection request declined.");
+              toast.info("Follow request declined.");
+              router.refresh();
           } else {
-              toast.error(response.data.message || "Failed to decline connection.");
+              toast.error(response.data.message || "Failed to decline request.");
               setNotifications(originalNotifications);
               if (wasUnread) setUnreadCount(prev => prev + 1);
           }
       } catch (error) {
-          console.error("Error declining connection:", error);
-          toast.error(error.response?.data?.message || "Server error declining connection.");
+          console.error("Error declining request:", error);
+          toast.error(error.response?.data?.message || "Server error declining request.");
           setNotifications(originalNotifications);
           if (wasUnread) setUnreadCount(prev => prev + 1);
       }
@@ -184,6 +186,14 @@ export default function DashboardLayout({ children }) {
             socket.emit('register_user', userId);
           });
           socket.on('new_notification', addNotification);
+          
+          socket.on('receive_private_message', (message) => {
+             if (message && message.senderId && !window.location.pathname.includes('/dashboard/chat')) {
+                 toast.info(`New message from ${message.senderName || 'Someone'}`);
+                 setUnreadChatSenders(prev => new Set(prev).add(message.senderId));
+             }
+          });
+
           socket.on('connect_error', (err) => {
             console.error('Socket connection error:', err.message);
           });
@@ -194,6 +204,7 @@ export default function DashboardLayout({ children }) {
     } else if (sessionStatus !== 'loading') {
         if (socket) { socket.disconnect(); socket = null; }
         setNotifications([]); setUnreadCount(0); setShowNotificationPanel(false);
+        setUnreadChatSenders(new Set());
     }
     return () => { if (socket) { socket.disconnect(); socket = null; } };
   }, [sessionStatus, session?.user?.id]);
@@ -239,15 +250,28 @@ export default function DashboardLayout({ children }) {
             {sidebarItems.map((item) => (
               <button
                 key={item.key}
-                onClick={() => router.push(`/dashboard/${item.key}`)}
-                className={`flex items-center gap-3 w-full text-left px-4 py-3 rounded-md transition ${
+                onClick={() => {
+                  if (item.key === 'chat') {
+                      setUnreadChatSenders(new Set());
+                  }
+                  router.push(`/dashboard/${item.key}`);
+                }}
+                className={`flex items-center justify-between gap-3 w-full text-left px-4 py-3 rounded-md transition ${
                   activeSection === item.key
                     ? "bg-black text-white font-semibold"
                     : "text-gray-700 hover:bg-gray-100 hover:text-black"
                 }`}
               >
-                {item.icon}
-                <span className={`${sidebarOpen ? "inline" : "hidden"} whitespace-nowrap`}>{item.label}</span>
+                <div className="flex items-center gap-3">
+                    {item.icon}
+                    <span className={`${sidebarOpen ? "inline" : "hidden"} whitespace-nowrap`}>{item.label}</span>
+                </div>
+                
+                {item.key === 'chat' && unreadChatSenders.size > 0 && sidebarOpen && (
+                    <span className="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full">
+                        {unreadChatSenders.size}
+                    </span>
+                )}
               </button>
             ))}
           </nav>
@@ -268,8 +292,14 @@ export default function DashboardLayout({ children }) {
         <div className="flex-1 flex flex-col overflow-hidden">
           <header className="flex items-center justify-between px-6 py-3 bg-white text-black shadow-sm flex-shrink-0 h-16 border-b">
             <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="text-2xl font-bold tracking-wide flex-shrink-0 md:hidden lg:inline">Blue</div>
-              <div className="flex-1 max-w-lg min-w-[200px]">
+          <div className="flex-shrink-0">
+  <img
+    src="/logo.png" // 👈 replace this with your actual logo path
+    alt="BlueCollorHub Logo"
+    className="h-18 w-auto object-contain md:hidden lg:inline"
+  />
+</div>
+              <div className="flex-1 max-w-3xl min-w-[400px]">
                 <SearchBar />
               </div>
             </div>
@@ -277,7 +307,10 @@ export default function DashboardLayout({ children }) {
                 <div className="relative" ref={notificationPanelRef}>
                     <button
                         onClick={() => {
-                            // REMOVED markAsRead from here
+                            if (!showNotificationPanel && unreadCount > 0) {
+                                const unreadIds = notifications.filter(n => !n.read && n.type !== 'connect_request').map(n => n._id);
+                                if (unreadIds.length > 0) markAsRead(unreadIds);
+                            }
                             setShowNotificationPanel(!showNotificationPanel);
                         }}
                         className="p-2 rounded-full hover:bg-gray-100 transition relative text-gray-600 hover:text-black"
@@ -307,9 +340,9 @@ export default function DashboardLayout({ children }) {
                                       >
                                         <Link href={`/dashboard/profile/${notif.senderId?._id}`} legacyBehavior><a onClick={() => setShowNotificationPanel(false)}><img src={notif.senderId?.profilePic || '/profile.jpg'} alt={notif.senderId?.name || 'User'} className="w-8 h-8 rounded-full flex-shrink-0 object-cover mt-1 bg-gray-200"/></a></Link>
                                         <div className="flex-1 text-sm">
-                                            <Link href={getNotificationLink(notif)} legacyBehavior><a onClick={() => {setShowNotificationPanel(false); if (!notif.read) markAsRead([notif._id]);}} className="hover:no-underline"><span className="font-semibold text-gray-900 hover:underline">{notif.senderId?.name || 'Someone'}</span>{' '}<span className="text-gray-700">{getNotificationMessage(notif)}</span></a></Link>
+                                            <Link href={getNotificationLink(notif)} legacyBehavior><a onClick={() => {setShowNotificationPanel(false); if (!notif.read && notif.type !== 'connect_request') markAsRead([notif._id]);}} className="hover:no-underline"><span className="font-semibold text-gray-900 hover:underline">{notif.senderId?.name || 'Someone'}</span>{' '}<span className="text-gray-700">{getNotificationMessage(notif)}</span></a></Link>
                                             <div className="text-xs text-gray-500 mt-1">{new Date(notif.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</div>
-                                            {notif.type === 'connect_request' && !notif.read && ( // CORRECTED Condition
+                                            {notif.type === 'connect_request' && !notif.read && (
                                                 <div className="mt-2 flex gap-2">
                                                     <button onClick={(e) => { e.stopPropagation(); handleAcceptRequest(notif.senderId._id, notif._id); }} className="px-3 py-1 text-xs font-medium rounded bg-green-500 text-white hover:bg-green-600 transition"> Accept </button>
                                                     <button onClick={(e) => { e.stopPropagation(); handleDeclineRequest(notif.senderId._id, notif._id); }} className="px-3 py-1 text-xs font-medium rounded bg-gray-300 text-gray-700 hover:bg-gray-400 transition"> Decline </button>
@@ -388,7 +421,9 @@ export default function DashboardLayout({ children }) {
           </div>
           <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>
         </div>
-         {pathname?.includes("/dashboard/chat") && <ChatSupport sidebarOpen={sidebarOpen} />}
+         
+         {/* This line has been correctly removed */}
+         
       </div>
     </NotificationContext.Provider>
   );

@@ -4,9 +4,9 @@ import categoriesWithSkills from "@/data/categoriesWithSkills";
 const CategoriesDropdown = ({ onSkillClick }) => {
   return (
     <div
-      className="absolute top-full left-0 bg-white shadow-lg rounded-lg 
-                 p-8 grid grid-cols-5 gap-6 z-50 mt-2 
-                 w-[910px] h-[448px] overflow-y-auto"
+      className="fixed top-[120px] left-[260px] bg-white shadow-2xl rounded-xl
+                 p-8 grid grid-cols-5 gap-6 z-[9999] mt-2 
+                 w-[910px] h-[448px] overflow-y-auto border border-gray-200"
     >
       {Object.entries(categoriesWithSkills).map(([category, skills]) => (
         <div key={category}>
@@ -16,7 +16,7 @@ const CategoriesDropdown = ({ onSkillClick }) => {
               <li
                 key={skill}
                 className="hover:underline cursor-pointer"
-                onClick={() => onSkillClick(category, skill)} // call parent handler
+                onClick={() => onSkillClick(category, skill)}
               >
                 {skill}
               </li>

@@ -14,16 +14,15 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: null },
     whatsappNo: { type: String, default: null },
     coverImage: { type: String, default: null },
-
-    // --- UPDATED/ADDED FIELDS ---
+    
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     
-    // These fields were missing, causing the error:
     connectionRequestsSent: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     connectionRequestsReceived: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    // --- END UPDATED/ADDED FIELDS ---
 
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], // <-- ADDED
+    
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number], default: [0, 0] },

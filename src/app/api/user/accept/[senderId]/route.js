@@ -2,7 +2,7 @@ import connect from "@lib/mongodb";
 import User from "@models/User";
 import Notification from "@models/Notification";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // ✅ FIXED
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import mongoose from "mongoose";
 
 export async function POST(req, { params }) {
@@ -41,7 +41,6 @@ export async function POST(req, { params }) {
     if (!recipientHasRequest || !senderSentRequest) {
         await User.findByIdAndUpdate(recipientId, { $pull: { connectionRequestsReceived: senderId } });
         await User.findByIdAndUpdate(senderId, { $pull: { connectionRequestsSent: recipientId } });
-        console.warn(`Inconsistent request state between ${senderIdStr} and ${recipientIdStr}. Request removed.`);
         return new Response(JSON.stringify({ success: false, message: "No matching pending connection request found" }), { status: 404 });
      }
 
@@ -56,17 +55,24 @@ export async function POST(req, { params }) {
         })
     ]);
 
-     let notification = null;
     try {
-        notification = await Notification.create({
+        await Notification.create({
           recipientId: senderId,
           senderId: recipientId,
           type: "connect_accept",
         });
-        console.log("Connect Accept Notification Created:", notification?._id);
+
+        // ✅ FIX: Delete the original "connect_request" notification
+        await Notification.deleteOne({
+            recipientId: recipientId, // The user who accepted
+            senderId: senderId,     // The user who sent
+            type: "connect_request"
+        });
+
+        console.log("Connect Accept Notification Created and original request deleted.");
 
     } catch (notificationError) {
-        console.error("Failed to create connect accept notification:", notificationError);
+        console.error("Failed to create/delete notifications:", notificationError);
     }
 
     return new Response(JSON.stringify({ success: true, message: "Connection accepted" }), { status: 200 });

@@ -18,6 +18,7 @@ export default function SearchBar() {
     if (district) params.append("district", district);
 
     router.push(`/dashboard/posts?${params.toString()}`);
+
   };
 
   const handleKeyPress = (e) => {
@@ -32,7 +33,7 @@ export default function SearchBar() {
 
   return (
     <div className="flex items-center gap-4 w-full">
-      {/* Modern Location Selectors */}
+      {/* Location Selectors */}
       <div className="flex items-center gap-2 bg-white border border-black rounded-lg p-2 shadow-sm flex-shrink-0">
         <FaMapMarkerAlt className="text-black text-lg ml-1" />
 
@@ -42,7 +43,9 @@ export default function SearchBar() {
           className="px-3 py-1 rounded-lg border border-black focus:outline-none focus:ring-1 focus:ring-black w-32 text-sm"
         >
           {Object.keys(indiaStatesWithDistricts).map((st) => (
-            <option key={st} value={st}>{st}</option>
+            <option key={st} value={st}>
+              {st}
+            </option>
           ))}
         </select>
 
@@ -52,26 +55,29 @@ export default function SearchBar() {
           className="px-3 py-1 rounded-lg border border-black focus:outline-none focus:ring-1 focus:ring-black w-32 text-sm ml-2"
         >
           {indiaStatesWithDistricts[state].map((dist) => (
-            <option key={dist} value={dist}>{dist}</option>
+            <option key={dist} value={dist}>
+              {dist}
+            </option>
           ))}
         </select>
       </div>
 
       {/* Search Input */}
-      <div className="relative flex-1 max-w-xs">
-  <input
-    type="text"
-    placeholder="Search for posts, users..."
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    onKeyDown={handleKeyPress}
-    className="border border-black rounded-lg pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-black placeholder-gray-500"
-  />
-  <FaSearch
-    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black cursor-pointer"
-    onClick={handleSearch}
-  />
-</div>
+      <div className="relative flex-1 max-w-2xl">
+ {/* 👈 increased width */}
+        <input
+          type="text"
+          placeholder="Search for posts, users..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleKeyPress}
+          className="border border-black rounded-lg pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-black placeholder-gray-500"
+        />
+        <FaSearch
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black cursor-pointer"
+          onClick={handleSearch}
+        />
+      </div>
     </div>
   );
 }
