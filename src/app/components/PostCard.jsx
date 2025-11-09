@@ -10,9 +10,11 @@ import {
     FaHeart, FaRegHeart, FaComment, FaStar, FaPaperPlane,
     FaChevronLeft, FaChevronRight, FaTimes, FaUserPlus,
     FaCheck, FaHourglassHalf, FaUserCheck,
-    FaBookmark, FaRegBookmark
+    FaBookmark, FaRegBookmark, FaChartBar
 } from "react-icons/fa";
 import Link from 'next/link';
+// 🌟 UPDATED IMPORT: Using the existing component file
+import RatingBreakdown from "./RatingBreakdown"; 
 
 export default function PostCard({ post }) {
     const { data: session } = useSession();
@@ -24,9 +26,12 @@ export default function PostCard({ post }) {
     const [showComments, setShowComments] = useState("collapsed");
     const [showRatings, setShowRatings] = useState(false);
     const [comments, setComments] = useState(post.comments || []);
-    const [feedbacks, setFeedbacks] = useState(post.ratings || []);
+    // Kept for post rating count, but content is not displayed
+    const [feedbacks, setFeedbacks] = useState(post.ratings || []); 
     const [newComment, setNewComment] = useState("");
-    const [newFeedback, setNewFeedback] = useState("");
+    
+    // ❌ REMOVED: const [newFeedback, setNewFeedback] = useState("");
+
     const [newRating, setNewRating] = useState(0);
     const [currentImage, setCurrentImage] = useState(0);
     const [imageLoading, setImageLoading] = useState(true);
@@ -34,10 +39,36 @@ export default function PostCard({ post }) {
     const [showModal, setShowModal] = useState(false);
     const [modalImageIndex, setModalImageIndex] = useState(0);
     const [connectStatus, setConnectStatus] = useState('idle');
+    
+    // 🌟 NEW STATE: For the overall worker rating modal
+    const [showOverallRatingModal, setShowOverallRatingModal] = useState(false);
+
+    // 🌟 RATING STATE: Worker's overall rating (used in the header)
+    const initialWorkerRatingData = post.userId?.overallRating || { 
+        averageScore: 0, 
+        totalRatings: 0, 
+        distribution: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 } 
+    };
+    const [liveWorkerOverallRating, setLiveWorkerOverallRating] = useState(initialWorkerRatingData);
+
+    // 🌟 NEW STATE: Post's specific rating (used in the footer)
+    // We rely on post.averageRating and post.ratings.length which should be updated by the backend
+    const [livePostAverageRating, setLivePostAverageRating] = useState(post.averageRating || 0);
+    const [livePostTotalRatings, setLivePostTotalRatings] = useState(post.ratings?.length || 0);
+
+    // 🌟 NEW STATE: To track the current user's rating for single-use/overwrite logic
+    const currentUserRating = post.ratings?.find(
+        (r) => (r.userId?._id || r.userId) === currentUserId
+    );
+    const [userCurrentRating, setUserCurrentRating] = useState(
+        currentUserRating?.value || 0
+    ); 
 
     const commentsRef = useRef(null);
     const ratingsRef = useRef(null);
-
+    
+    // ... existing useEffects
+    
     useEffect(() => {
         if (session && post.likes && Array.isArray(post.likes)) {
             const userLiked = post.likes.some(
@@ -80,6 +111,8 @@ export default function PostCard({ post }) {
 
     }, [session, currentUserId, post?.userId]);
 
+    // ... handleLike and handleSavePost functions (omitted for brevity, assume unchanged)
+    
     const handleLike = async () => {
         if (!currentUserId) return toast.error("Please login to like posts.");
         const prevLiked = liked;
@@ -156,25 +189,52 @@ export default function PostCard({ post }) {
         }
     };
 
+    // 🌟 UPDATED: Implemented fix for instant UI refresh after rating submission
     const handleAddFeedback = async () => {
         if (newRating === 0) return toast.warn("Please select a rating.");
-        if (!newFeedback.trim()) return toast.warn("Please provide feedback.");
         if (!currentUserId) return toast.error("Please login to rate.");
-        const feedbackObj = { value: newRating, feedback: newFeedback };
+
+        // The API payload only sends the value. Backend must handle overwrite.
+        const ratingObj = { value: newRating, feedback: "" }; 
+
         try {
-            const { data } = await axios.post(`/api/post/${post._id}/rating`, feedbackObj);
-            if (data.success && data.rating) {
-                const addedFeedback = { ...data.rating, userName: session?.user?.name || "User" };
-                setFeedbacks(prev => [addedFeedback, ...prev]);
-                setNewFeedback("");
-                setNewRating(0);
-                toast.success("Feedback submitted!");
+            const { data } = await axios.post(`/api/post/${post._id}/rating`, ratingObj);
+            
+            if (data.success) {
+                // 1. Update the local state for the user's current rating (for overwrite check)
+                setUserCurrentRating(newRating);
+                setNewRating(0); // Reset input field
+                setShowRatings(false); // Close the rating box after submission
+
+                toast.success(userCurrentRating > 0 ? "Rating updated successfully!" : "Rating submitted successfully!");
+                
+                // 2. FIX: Update the Post's Overall Rating display using the 'in' operator 
+                // to ensure properties are used even if they are null or 0.
+                if ('newPostAverageRating' in data) {
+                    // Use the new average rating from the backend, defaulting to 0 if the value is null
+                    setLivePostAverageRating(data.newPostAverageRating ?? 0);
+                }
+                
+                if ('newPostTotalRatings' in data) {
+                    // Use the new total count from the backend, defaulting to 0 if the value is null
+                    setLivePostTotalRatings(data.newPostTotalRatings ?? 0);
+                } else if (userCurrentRating === 0) {
+                    // Fallback client-side update for total count if it was a new rating 
+                    // AND total count wasn't returned by the backend.
+                    setLivePostTotalRatings(prev => prev + 1);
+                }
+                
+                // 3. Update the Worker's overall rating if the backend returns it
+                if (data.newOverallRating) {
+                    setLiveWorkerOverallRating(data.newOverallRating);
+                }
+                
             } else {
-                toast.error(data.message || "Failed to submit feedback.");
+                toast.error(data.message || "Failed to submit rating.");
             }
         } catch (err) {
-            console.error("Error adding feedback:", err);
-            toast.error(err.response?.data?.message || "Error submitting feedback.");
+            console.error("Error adding rating:", err);
+            toast.error(err.response?.data?.message || "Error submitting rating.");
         }
     };
 
@@ -183,13 +243,16 @@ export default function PostCard({ post }) {
             if (commentsRef.current && !commentsRef.current.contains(e.target) && !e.target.closest('[data-comment-toggle]')) {
                 setShowComments("collapsed");
             }
+            // Use userCurrentRating to initialize the star input when opening the ratings panel
             if (ratingsRef.current && !ratingsRef.current.contains(e.target) && !e.target.closest('[data-rating-toggle]')) {
                 setShowRatings(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [showOverallRatingModal]);
+
+    // ... openModal, prevImage, nextImage, closeModal, handleConnect, renderConnectButton functions (omitted for brevity, assume unchanged)
 
     const openModal = (index) => {
         setModalImageIndex(index);
@@ -267,15 +330,35 @@ export default function PostCard({ post }) {
         <div className="max-w-2xl mx-auto my-6 border border-gray-200 shadow-md bg-white rounded-lg overflow-hidden">
 
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                {/* FIX 1: Post Author Link */}
                 <Link 
                     href={`/dashboard/profile/${post.userId?._id}`} 
-                    className="flex items-center gap-3 group min-w-0" // Class moved from <a>
+                    className="flex items-center gap-3 group min-w-0"
                 >
                     <img src={post.userId?.profilePic || "/profile.jpg"} alt="User Avatar" className="w-10 h-10 rounded-full object-cover bg-gray-200 flex-shrink-0" />
                     <div className="min-w-0">
                         <p className="font-semibold group-hover:underline truncate text-sm">{post.userId?.name || "User"}</p>
                         <p className="text-gray-500 text-xs truncate">{post.userId?.title || ""}</p>
+                        
+                        {/* 🌟 OVERALL WORKER RATING SUMMARY DISPLAY - USING WORKER STATE 🌟 */}
+                        {liveWorkerOverallRating.totalRatings > 0 && (
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <FaStar size={10} className="text-yellow-500" />
+                                <span className="text-xs font-medium text-gray-700">
+                                    {liveWorkerOverallRating.averageScore.toFixed(1)}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                    ({liveWorkerOverallRating.totalRatings} Ratings)
+                                </span>
+                                <button 
+                                    onClick={(e) => { e.preventDefault(); setShowOverallRatingModal(true); }}
+                                    className="ml-2 text-blue-600 hover:text-blue-800 transition"
+                                    aria-label="View overall worker rating breakdown"
+                                >
+                                    <FaChartBar size={12} />
+                                </button>
+                            </div>
+                        )}
+                        {/* -------------------------------------------------- */}
                     </div>
                 </Link>
                 {renderConnectButton()}
@@ -309,14 +392,14 @@ export default function PostCard({ post }) {
                             {post.images.length > 1 && (
                                 <>
                                     <button
-                                        onClick={(e) => prevImage(e)}
+                                        onClick={(e) => {e.stopPropagation(); setCurrentImage((prev) => (prev === 0 ? post.images.length - 1 : prev - 1));}}
                                         className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60 transition z-10"
                                         aria-label="Previous image"
                                     >
                                         <FaChevronLeft size={16}/>
                                     </button>
                                     <button
-                                        onClick={(e) => nextImage(e)}
+                                        onClick={(e) => {e.stopPropagation(); setCurrentImage((prev) => (prev === post.images.length - 1 ? 0 : prev + 1));}}
                                         className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60 transition z-10"
                                         aria-label="Next image"
                                     >
@@ -355,13 +438,27 @@ export default function PostCard({ post }) {
                         <span className="text-xs mt-1">Save</span>
                     </button>
                 </div>
-                <button className="flex flex-col items-center cursor-pointer text-gray-600 hover:text-yellow-500 transition group" onClick={() => setShowRatings(!showRatings)} data-rating-toggle>
+                {/* 🌟 FIX: Use livePostAverageRating and livePostTotalRatings for the display 🌟 */}
+                <button 
+                    className="flex flex-col items-center cursor-pointer text-gray-600 hover:text-yellow-500 transition group" 
+                    onClick={() => { 
+                        setShowRatings(!showRatings); 
+                        setNewRating(userCurrentRating); // Initialize input rating with current user's rating
+                    }} 
+                    data-rating-toggle
+                >
                     <div className="flex gap-0.5">
+                        {/* Dynamic Stars */}
                         {Array.from({ length: 5 }, (_, i) => (
-                            <FaStar key={i} size={14} className={i < Math.round(post.averageRating || 0) ? "text-yellow-400" : "text-gray-300"} />
+                            <FaStar 
+                                key={i} 
+                                size={14} 
+                                className={i < Math.round(livePostAverageRating || 0) ? "text-yellow-400" : "text-gray-300"} 
+                            />
                         ))}
                     </div>
-                    <span className="text-xs mt-1">{(post.averageRating || 0).toFixed(1)} ({post.ratings?.length || 0})</span>
+                    {/* Average Score and Total Count */}
+                    <span className="text-xs mt-1">{(livePostAverageRating || 0).toFixed(1)} ({livePostTotalRatings || 0})</span>
                 </button>
             </div>
 
@@ -397,12 +494,10 @@ export default function PostCard({ post }) {
 
                                 return (
                                     <div key={commentId} className="flex items-start gap-2">
-                                        {/* FIX 2: Commenter Avatar Link */}
                                         <Link href={`/dashboard/profile/${user._id || c.userId}`}>
                                             <img src={userPic} alt={userName} className="w-7 h-7 rounded-full object-cover bg-gray-200 flex-shrink-0 mt-1"/>
                                         </Link>
                                         <div className="bg-gray-100 p-2 rounded-lg w-full text-sm">
-                                            {/* FIX 3: Commenter Name Link */}
                                             <Link href={`/dashboard/profile/${user._id || c.userId}`} className="font-semibold text-xs hover:underline">
                                                 {userName}
                                             </Link>
@@ -427,67 +522,60 @@ export default function PostCard({ post }) {
 
             {showRatings && (
             <div ref={ratingsRef} className="border-t border-gray-200 p-4 bg-gray-50">
-                <h4 className="text-sm font-semibold mb-3">Rate and Review</h4>
+                {/* 🌟 UPDATED: Header for overwrite logic */}
+                <h4 className="text-sm font-semibold mb-3">
+                    {userCurrentRating > 0 ? "Update Your Rating" : "Submit Your Rating"}
+                </h4>
                 <div className="flex flex-col gap-3 mb-4">
                     <div className="flex items-center gap-2">
                         <span className="text-sm">Your rating:</span>
+                        {/* 🌟 UPDATED: Display user's existing rating or the new one being selected */}
                         {Array.from({ length: 5 }, (_, i) => (
                             <FaStar
                                 key={i}
-                                className={`text-xl cursor-pointer transition-colors ${i < newRating ? "text-yellow-400" : "text-gray-300 hover:text-yellow-300"}`}
+                                className={`text-xl cursor-pointer transition-colors ${i < (newRating || userCurrentRating) ? "text-yellow-400" : "text-gray-300 hover:text-yellow-300"}`}
                                 onClick={() => setNewRating(i + 1)}
                             />
                         ))}
                     </div>
-                    <textarea
-                        rows={2}
-                        placeholder="Write your feedback (optional)..."
-                        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-black resize-none"
-                        value={newFeedback}
-                        onChange={(e) => setNewFeedback(e.target.value)}
-                    />
+                    {/* ❌ REMOVED: Feedback Textarea as requested */}
                     <button
                         className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition self-start text-sm font-medium disabled:opacity-50"
                         onClick={handleAddFeedback}
-                        disabled={newRating === 0}
+                        // Disable if no new rating is selected, but allow if user is trying to update a non-zero rating
+                        disabled={newRating === 0 && userCurrentRating === 0} 
                     >
-                        Submit Review
+                        {userCurrentRating > 0 ? "Update Rating" : "Submit Rating"}
                     </button>
                 </div>
-                <div className="space-y-3 max-h-48 overflow-auto pr-2">
-                    <h5 className="text-xs font-semibold text-gray-500 border-b pb-1 mb-2">Reviews ({feedbacks?.length || 0})</h5>
-                    {(feedbacks && feedbacks.length > 0) ? (
-                        feedbacks.map((fb, idx) => {
-                            const ratingUserId = fb.userId || {};
-                            const ratingUserName = ratingUserId.name || fb.userName || "User";
-                            const ratingUserPic = ratingUserId.profilePic || "/profile.jpg";
-                            return (
-                                <div key={fb._id || `feedback-${idx}`} className="flex items-start gap-2 text-sm">
-                                    {/* FIX 4A: Reviewer Avatar Link */}
-                                    <Link href={`/dashboard/profile/${ratingUserId._id || fb.userId}`}>
-                                        <img src={ratingUserPic} alt={ratingUserName} className="w-7 h-7 rounded-full object-cover bg-gray-200 flex-shrink-0"/>
-                                    </Link>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-1">
-                                            {/* FIX 4B: Reviewer Name Link */}
-                                            <Link href={`/dashboard/profile/${ratingUserId._id || fb.userId}`} className="font-semibold text-xs hover:underline">
-                                                {ratingUserName}
-                                            </Link>
-                                            <div className="flex">
-                                                {Array.from({ length: 5 }, (_, i) => (
-                                                    <FaStar key={i} size={10} className={i < (fb.value || 0) ? "text-yellow-400" : "text-gray-300"} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                        {fb.feedback && <p className="text-gray-700 text-xs mt-0.5 break-words">{fb.feedback}</p>}
-                                    </div>
-                                </div>
-                            );
-                        })
-                    ) : <p className="text-xs text-gray-500 text-center">No reviews yet.</p>}
-                </div>
+                {/* ❌ REMOVED: Review/Feedback List as requested */}
             </div>
             )}
+
+            {/* 🌟 OVERALL RATING BREAKDOWN MODAL - USING WORKER STATE 🌟 */}
+            {showOverallRatingModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[110] p-4 backdrop-blur-sm" onClick={() => setShowOverallRatingModal(false)}>
+                    <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-2xl rating-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 className="text-xl font-bold">Overall Worker Rating</h3>
+                            <button className="text-gray-500 hover:text-gray-800 transition" onClick={() => setShowOverallRatingModal(false)} aria-label="Close modal">
+                                <FaTimes size={20} />
+                            </button>
+                        </div>
+                        
+                        <RatingBreakdown 
+                            // Using the worker's live state for all rating data
+                            averageRating={liveWorkerOverallRating.averageScore}
+                            totalRatings={liveWorkerOverallRating.totalRatings}
+                            ratingDistribution={liveWorkerOverallRating.distribution}
+                            totalReviews={liveWorkerOverallRating.totalRatings}
+                        />
+
+                    </div>
+                </div>
+            )}
+            {/* ------------------------------------------- */}
+
 
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-4 backdrop-blur-sm" onClick={closeModal}>

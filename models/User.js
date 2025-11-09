@@ -21,7 +21,33 @@ const userSchema = new mongoose.Schema(
     connectionRequestsSent: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     connectionRequestsReceived: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], // <-- ADDED
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }], // <-- Existing field
+    
+    // 🌟 NEW FIELD FOR OVERALL RATING 🌟
+    overallRating: {
+        totalRatings: { 
+            type: Number, 
+            default: 0, 
+            min: 0,
+            comment: "Total number of ratings received across all posts."
+        },
+        averageScore: { 
+            type: Number, 
+            default: 0,
+            min: 0,
+            max: 5,
+            comment: "The calculated average score (0 to 5)."
+        },
+        // Distribution map to store the count for each star value
+        distribution: { 
+            '5': { type: Number, default: 0, min: 0 },
+            '4': { type: Number, default: 0, min: 0 },
+            '3': { type: Number, default: 0, min: 0 },
+            '2': { type: Number, default: 0, min: 0 },
+            '1': { type: Number, default: 0, min: 0 },
+        }
+    },
+    // ------------------------------------
     
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },

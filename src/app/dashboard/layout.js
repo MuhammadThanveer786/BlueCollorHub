@@ -63,19 +63,19 @@ export default function DashboardLayout({ children }) {
         const currentUnreadCount = data.filter(n => !n.read).length;
         setUnreadCount(currentUnreadCount);
       } else {
-         setNotifications([]);
-         setUnreadCount(0);
+        setNotifications([]);
+        setUnreadCount(0);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
       toast.error("Could not load notifications.");
-       setNotifications([]);
-       setUnreadCount(0);
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
   const addNotification = (newNotification) => {
-     if (!newNotification || !newNotification._id) return;
+    if (!newNotification || !newNotification._id) return;
     setNotifications(prev => {
         if (prev.some(n => n._id === newNotification._id)) return prev;
         return [newNotification, ...prev];
@@ -98,20 +98,20 @@ export default function DashboardLayout({ children }) {
   };
 
   const markAsRead = async (idsToMark = []) => {
-     if (!idsToMark || idsToMark.length === 0) return;
-     const unreadIdsInList = idsToMark.filter(id => notifications.find(n => n._id === id && !n.read));
-     if (unreadIdsInList.length === 0) return;
-     const originalNotifications = [...notifications];
-     setNotifications(prev => prev.map(n => unreadIdsInList.includes(n._id) ? { ...n, read: true } : n));
-     setUnreadCount(prev => Math.max(0, prev - unreadIdsInList.length));
-     try {
-         await axios.post('/api/notifications/mark-read', { notificationIds: unreadIdsInList });
-     } catch (error) {
-         console.error("Failed to mark notifications as read:", error);
-         toast.error(`Failed to update notification status: ${error.response?.data?.message || error.message}`);
-         setNotifications(originalNotifications);
-         setUnreadCount(originalNotifications.filter(n => !n.read).length);
-     }
+    if (!idsToMark || idsToMark.length === 0) return;
+    const unreadIdsInList = idsToMark.filter(id => notifications.find(n => n._id === id && !n.read));
+    if (unreadIdsInList.length === 0) return;
+    const originalNotifications = [...notifications];
+    setNotifications(prev => prev.map(n => unreadIdsInList.includes(n._id) ? { ...n, read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - unreadIdsInList.length));
+    try {
+        await axios.post('/api/notifications/mark-read', { notificationIds: unreadIdsInList });
+    } catch (error) {
+        console.error("Failed to mark notifications as read:", error);
+        toast.error(`Failed to update notification status: ${error.response?.data?.message || error.message}`);
+        setNotifications(originalNotifications);
+        setUnreadCount(originalNotifications.filter(n => !n.read).length);
+    }
   };
 
   const handleAcceptRequest = async (senderId, notificationId) => {
@@ -139,11 +139,11 @@ export default function DashboardLayout({ children }) {
   };
 
   const handleDeclineRequest = async (senderId, notificationId) => {
-       if (!senderId) return;
-       const originalNotifications = [...notifications];
-       setNotifications(prev => prev.filter(n => n._id !== notificationId));
-       const wasUnread = originalNotifications.find(n => n._id === notificationId && !n.read);
-       if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
+      if (!senderId) return;
+      const originalNotifications = [...notifications];
+      setNotifications(prev => prev.filter(n => n._id !== notificationId));
+      const wasUnread = originalNotifications.find(n => n._id === notificationId && !n.read);
+      if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
       try {
           const response = await axios.post(`/api/user/decline/${senderId}`);
           if (response.data.success) {
@@ -168,8 +168,8 @@ export default function DashboardLayout({ children }) {
         setShowAllCategories(false);
       }
       if (notificationPanelRef.current && !notificationPanelRef.current.contains(event.target) && !event.target.closest('[data-notification-bell]')) {
-         setShowNotificationPanel(false);
-       }
+        setShowNotificationPanel(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -180,7 +180,7 @@ export default function DashboardLayout({ children }) {
     if (userId && sessionStatus === 'authenticated') {
       fetchNotifications();
       if (!socket || socket.disconnected) {
-           socket = io();
+          socket = io();
           socket.on('connect', () => {
             console.log('Socket connected:', socket.id);
             socket.emit('register_user', userId);
@@ -188,10 +188,10 @@ export default function DashboardLayout({ children }) {
           socket.on('new_notification', addNotification);
           
           socket.on('receive_private_message', (message) => {
-             if (message && message.senderId && !window.location.pathname.includes('/dashboard/chat')) {
-                 toast.info(`New message from ${message.senderName || 'Someone'}`);
-                 setUnreadChatSenders(prev => new Set(prev).add(message.senderId));
-             }
+            if (message && message.senderId && !window.location.pathname.includes('/dashboard/chat')) {
+                toast.info(`New message from ${message.senderName || 'Someone'}`);
+                setUnreadChatSenders(prev => new Set(prev).add(message.senderId));
+            }
           });
 
           socket.on('connect_error', (err) => {
@@ -267,6 +267,7 @@ export default function DashboardLayout({ children }) {
                     <span className={`${sidebarOpen ? "inline" : "hidden"} whitespace-nowrap`}>{item.label}</span>
                 </div>
                 
+                {/* Red button icon/badge for unseen chat messages from others */}
                 {item.key === 'chat' && unreadChatSenders.size > 0 && sidebarOpen && (
                     <span className="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full">
                         {unreadChatSenders.size}
@@ -281,7 +282,7 @@ export default function DashboardLayout({ children }) {
               className={`flex items-center gap-3 w-full text-left px-4 py-3 rounded-md transition hover:bg-red-50 hover:text-red-600 ${
                 sidebarOpen ? "text-black" : "text-gray-500 justify-center"
               }`}
-               title="Logout"
+              title="Logout"
             >
               <FaSignOutAlt size={18} />
               <span className={`${sidebarOpen ? "inline" : "hidden"} whitespace-nowrap`}>Logout</span>
@@ -292,13 +293,17 @@ export default function DashboardLayout({ children }) {
         <div className="flex-1 flex flex-col overflow-hidden">
           <header className="flex items-center justify-between px-6 py-3 bg-white text-black shadow-sm flex-shrink-0 h-16 border-b">
             <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="flex-shrink-0">
-  <img
-    src="/logo.png" // 👈 replace this with your actual logo path
-    alt="BlueCollorHub Logo"
-    className="h-18 w-auto object-contain md:hidden lg:inline"
-  />
-</div>
+         {/* START REVISED LOGO CONTAINER */}
+      {/* The logo should be hidden when the sidebar is open */}
+      <div className={`flex-shrink-0 ${sidebarOpen ? 'hidden' : 'inline-block'}`}>
+          <img
+              src="/logo.png"
+              alt="BlueCollorHub Logo"
+              // The existing classes below might need slight adjustment, but we focus on the display class above
+              className="h-18 w-auto object-contain md:hidden lg:inline" 
+          />
+      </div>
+      {/* END REVISED LOGO CONTAINER */}  
               <div className="flex-1 max-w-3xl min-w-[400px]">
                 <SearchBar />
               </div>
@@ -320,13 +325,13 @@ export default function DashboardLayout({ children }) {
                         <FaBell size={20} />
                         {unreadCount > 0 && (
                             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white ring-2 ring-white">
-                               {unreadCount > 9 ? '9+' : unreadCount}
+                              {unreadCount > 9 ? '9+' : unreadCount}
                             </span>
                         )}
                     </button>
                     {showNotificationPanel && (
-                         <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden animate-fadeIn">
-                             <div className="p-3 border-b border-gray-200 bg-gray-50">
+                        <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden animate-fadeIn">
+                            <div className="p-3 border-b border-gray-200 bg-gray-50">
                                 <h3 className="font-semibold text-center text-gray-800">Notifications</h3>
                             </div>
                             <div className="max-h-96 overflow-y-auto divide-y divide-gray-100">
@@ -354,15 +359,15 @@ export default function DashboardLayout({ children }) {
                                     ))
                                 )}
                             </div>
-                             {notifications.length > 0 && (
+                            {notifications.length > 0 && (
                                 <div className="p-2 border-t border-gray-200 text-center bg-gray-50">
                                     <Link href="/dashboard/notifications" legacyBehavior>
-                                         <a onClick={() => setShowNotificationPanel(false)} className="text-sm text-blue-600 hover:underline font-medium">
-                                             View all notifications
-                                         </a>
+                                        <a onClick={() => setShowNotificationPanel(false)} className="text-sm text-blue-600 hover:underline font-medium">
+                                            View all notifications
+                                        </a>
                                     </Link>
                                 </div>
-                             )}
+                            )}
                         </div>
                     )}
                 </div>
@@ -378,15 +383,15 @@ export default function DashboardLayout({ children }) {
                 <span className="text-white group-hover:text-black transition font-medium">Create</span>
               </button>
               <Link href="/dashboard/profile">
-                 <div className="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer flex-shrink-0 bg-gray-200 ring-1 ring-gray-300 hover:ring-black transition" title="View Profile">
-                   {user?.image ? (
-                     <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
-                   ) : (
-                     <div className="w-full h-full bg-gray-700 flex items-center justify-center text-white font-semibold text-sm">
-                       {user?.name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "U"}
-                     </div>
-                   )}
-                 </div>
+                <div className="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer flex-shrink-0 bg-gray-200 ring-1 ring-gray-300 hover:ring-black transition" title="View Profile">
+                  {user?.image ? (
+                    <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center text-white font-semibold text-sm">
+                      {user?.name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "U"}
+                    </div>
+                  )}
+                </div>
               </Link>
             </div>
           </header>
@@ -417,13 +422,11 @@ export default function DashboardLayout({ children }) {
                   ))}
               </div>
             </div>
-             <style jsx>{` div::-webkit-scrollbar { display: none; } `}</style>
+            <style jsx>{` div::-webkit-scrollbar { display: none; } `}</style>
           </div>
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>
+         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">{children}</main>
         </div>
-         
-         {/* This line has been correctly removed */}
-         
+        
       </div>
     </NotificationContext.Provider>
   );
