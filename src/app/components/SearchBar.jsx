@@ -7,18 +7,20 @@ import indiaStatesWithDistricts from "@/data/southStatesWithDistricts";
 
 export default function SearchBar() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [state, setState] = useState(Object.keys(indiaStatesWithDistricts)[0]);
-  const [district, setDistrict] = useState(indiaStatesWithDistricts[state][0]);
+  const [state, setState] = useState(""); // initially empty
+  const [district, setDistrict] = useState(""); // initially empty
   const router = useRouter();
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+
     if (searchQuery) params.append("query", searchQuery);
+
+    // Add state & district only if both are selected
     if (state) params.append("state", state);
     if (district) params.append("district", district);
 
     router.push(`/dashboard/posts?${params.toString()}`);
-
   };
 
   const handleKeyPress = (e) => {
@@ -28,7 +30,7 @@ export default function SearchBar() {
   const handleStateChange = (e) => {
     const selectedState = e.target.value;
     setState(selectedState);
-    setDistrict(indiaStatesWithDistricts[selectedState][0]);
+    setDistrict(""); // reset district when state changes
   };
 
   return (
@@ -37,11 +39,13 @@ export default function SearchBar() {
       <div className="flex items-center gap-2 bg-white border border-black rounded-lg p-2 shadow-sm flex-shrink-0">
         <FaMapMarkerAlt className="text-black text-lg ml-1" />
 
+        {/* State Dropdown */}
         <select
           value={state}
           onChange={handleStateChange}
-          className="px-3 py-1 rounded-lg border border-black focus:outline-none focus:ring-1 focus:ring-black w-32 text-sm"
+          className="px-3 py-1 rounded-lg border border-black focus:outline-none focus:ring-1 focus:ring-black w-40 text-sm"
         >
+          <option value="">Select State</option>
           {Object.keys(indiaStatesWithDistricts).map((st) => (
             <option key={st} value={st}>
               {st}
@@ -49,35 +53,44 @@ export default function SearchBar() {
           ))}
         </select>
 
+        {/* District Dropdown */}
         <select
           value={district}
           onChange={(e) => setDistrict(e.target.value)}
-          className="px-3 py-1 rounded-lg border border-black focus:outline-none focus:ring-1 focus:ring-black w-32 text-sm ml-2"
+          disabled={!state} // disabled until state selected
+          className={`px-3 py-1 rounded-lg border border-black focus:outline-none focus:ring-1 focus:ring-black w-40 text-sm ml-2 ${
+            !state ? "bg-gray-100 cursor-not-allowed" : ""
+          }`}
         >
-          {indiaStatesWithDistricts[state].map((dist) => (
-            <option key={dist} value={dist}>
-              {dist}
-            </option>
-          ))}
+          <option value="">Select District</option>
+          {state &&
+            indiaStatesWithDistricts[state]?.map((dist) => (
+              <option key={dist} value={dist}>
+                {dist}
+              </option>
+            ))}
         </select>
       </div>
 
       {/* Search Input */}
-      <div className="relative flex-1 max-w-2xl">
- {/* 👈 increased width */}
-        <input
-          type="text"
-          placeholder="Search for posts, users..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleKeyPress}
-          className="border border-black rounded-lg pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-black placeholder-gray-500"
-        />
-        <FaSearch
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black cursor-pointer"
-          onClick={handleSearch}
-        />
-      </div>
+    {/* Search Input */}
+<div className="relative flex-1 ">
+  <input
+    type="text"
+    placeholder='Search posts or skills (e.g., "plumbing", "bike mechanic")'
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    onKeyDown={handleKeyPress}
+    className="w-full border border-gray-400 rounded-l-md pl-4 pr-12 py-2 text-gray-700 focus:outline-none focus:ring-none focus:ring-black placeholder-gray-500 "
+  />
+  <button
+    onClick={handleSearch}
+    className="absolute right-0 top-0 h-full px-4 bg-black text-white rounded-r-md hover:bg-gray-800 transition cursor-pointer"
+  >
+    <FaSearch className="text-lg" />
+  </button>
+</div>
+
     </div>
   );
 }

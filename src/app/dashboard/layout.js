@@ -304,7 +304,7 @@ export default function DashboardLayout({ children }) {
           />
       </div>
       {/* END REVISED LOGO CONTAINER */}  
-              <div className="flex-1 max-w-3xl min-w-[400px]">
+              <div className="flex-1 min-w-[400px]">
                 <SearchBar />
               </div>
             </div>

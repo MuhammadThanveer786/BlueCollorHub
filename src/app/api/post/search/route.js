@@ -14,46 +14,46 @@ export async function GET(req) {
     const category = decodeURIComponent(searchParams.get("category") || "");
     const skill = decodeURIComponent(searchParams.get("skill") || "");
 
-    const userFilter = { $and: [] };
+    const userFilter = {};
 
-    // Location filters
-    if (state) userFilter.$and.push({ "location.state": state });
-    if (district) userFilter.$and.push({ "location.district": district });
+    // 🗺️ Location filter
+    const locationFilter = {};
+    if (state) locationFilter["location.state"] = new RegExp(`^${state}$`, "i");
+    if (district) locationFilter["location.district"] = new RegExp(`^${district}$`, "i");
 
-    // Category filter
+    if (Object.keys(locationFilter).length > 0) {
+      Object.assign(userFilter, locationFilter);
+    }
+
+    // 🧰 Category and skill filters
     if (category) {
-      userFilter.$and.push({
-        skillCategories: { $in: [new RegExp(category, "i")] },
-      });
+      userFilter.skillCategories = { $in: [new RegExp(category, "i")] };
     }
 
-    // Skill filter
     if (skill) {
-      userFilter.$and.push({ skills: { $in: [new RegExp(skill, "i")] } });
+      userFilter.skills = { $in: [new RegExp(skill, "i")] };
     }
 
-    // Query filter (name OR skills)
+    // 🔍 Query filter (name or skill search)
     if (query) {
       const regex = new RegExp(query, "i");
-      userFilter.$and.push({ $or: [{ name: regex }, { skills: regex }] });
+      userFilter.$or = [{ name: regex }, { skills: regex }];
     }
 
-    if (userFilter.$and.length === 0) delete userFilter.$and;
+    console.log("🧭 Final User Filter =>", JSON.stringify(userFilter, null, 2));
 
-    // Find matching users
+    // 🧑‍🔧 Find matching users
     const matchingUsers = await User.find(userFilter).select("_id");
     const userIds = matchingUsers.map((u) => u._id);
 
+    console.log("👥 Matched User IDs =>", userIds.length);
+
     if (userIds.length === 0) {
-      return new Response(JSON.stringify({ success: true, posts: [] }), {
-        status: 200,
-      });
+      return new Response(JSON.stringify({ success: true, posts: [] }), { status: 200 });
     }
 
-    // Filter posts by matched users
-    const postFilter = { userId: { $in: userIds } };
-
-    const posts = await Post.find(postFilter)
+    // 📰 Find posts of matched users
+    const posts = await Post.find({ userId: { $in: userIds } })
       .sort({ createdAt: -1 })
       .populate(
         "userId",
@@ -85,7 +85,7 @@ export async function GET(req) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching filtered posts:", error);
+    console.error("❌ Error fetching filtered posts:", error);
     return new Response(
       JSON.stringify({ success: false, message: error.message }),
       { status: 500 }
