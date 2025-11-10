@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["./src/*"],      // Maps components and utilities inside the 'src' folder (e.g., '@/lib/auth')
-      "@lib/*": ["./lib/*"],    // Maps utilities in the root 'lib' folder (e.g., '@lib/connectDB')
-      "@models/*": ["./models/*"] // Maps Mongoose models in the root 'models' folder (e.g., '@models/Notification')
+      "@/*": ["*"],
+      "@lib/*": ["lib/*"],
+      "@models/*": ["models/*"]
     }
   },
   "include": ["**/*.js", "**/*.jsx", "next-env.d.ts"],

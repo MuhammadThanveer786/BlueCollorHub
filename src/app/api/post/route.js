@@ -1,6 +1,6 @@
-import connect from "../../../../lib/mongodb";
-import Post from "../../../../models/Post";
-import User from "../../../../models/User"; // ✅ Import User model
+import connect from "../../../lib/mongodb";
+import Post from "../../../models/Post";
+import User from "../../../models/User"; // ✅ Import User model
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 

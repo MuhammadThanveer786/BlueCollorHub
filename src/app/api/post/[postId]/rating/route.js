@@ -1,6 +1,6 @@
-import connect from "@lib/mongodb";
-import Post from "@models/Post";
-import Notification from "@models/Notification";
+import connect from "@/lib/mongodb";
+import Post from "@/models/Post";
+import Notification from "@/models/Notification";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import mongoose from "mongoose";

@@ -2,8 +2,8 @@
 
 import mongoose from 'mongoose';
 // ⚠️ REVISED PATHS ⚠️ 
-import User from '../../models/User'; // Go up to src/, then up to root/, then into models/
-import Post from '../../models/Post'; // Go up to src/, then up to root/, then into models/
+import User from '../models/User'; // Go up to src/, then up to root/, then into models/
+import Post from '../models/Post'; // Go up to src/, then up to root/, then into models/
 
 /**
  * Recalculates and updates the overall rating metrics for a given user.

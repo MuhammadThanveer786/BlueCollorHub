@@ -1,8 +1,8 @@
 // src/app/api/user/[userId]/posts/route.js
 
-import connect from "@lib/mongodb";         // Correct alias for root lib folder
-import Post from "@models/Post";   // <-- Use the new alias
-import User from "@models/User";   // <-- Use the new alias   // Correct relative path to root models folder
+import connect from "@/lib/mongodb";         // Correct alias for root lib folder
+import Post from "@/models/Post";   // <-- Use the new alias
+import User from "@/models/User";   // <-- Use the new alias   // Correct relative path to root models folder
 import mongoose from "mongoose";        // Import mongoose if using ObjectId validation
 
 export async function GET(req, { params }) {

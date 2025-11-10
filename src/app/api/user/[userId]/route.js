@@ -1,8 +1,8 @@
 // src/app/api/user/[userId]/route.js
 
-import connect from "@lib/mongodb";
-import User from "@models/User";
-import Post from "@models/Post";
+import connect from "@/lib/mongodb";
+import User from "@/models/User";
+import Post from "@/models/Post";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import mongoose from "mongoose";

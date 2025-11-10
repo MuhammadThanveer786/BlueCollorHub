@@ -1,6 +1,8 @@
 import dbConnect from "@/lib/dbConnect";
 import Message from "@/models/Message";
 
+
+
 export async function GET(req) {
   try {
     await dbConnect();

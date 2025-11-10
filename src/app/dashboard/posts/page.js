@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
@@ -37,7 +37,8 @@ function PostGridItem({ post }) {
   );
 }
 
-export default function PostPage() {
+// ✅ Component containing all the client-side logic
+function PostsContent() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -97,5 +98,14 @@ export default function PostPage() {
         <PostGridItem key={post._id} post={post} />
       ))}
     </div>
+  );
+}
+
+// ✅ The page now wrapped in Suspense (required by Next.js 15)
+export default function PostsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Loading posts...</div>}>
+      <PostsContent />
+    </Suspense>
   );
 }

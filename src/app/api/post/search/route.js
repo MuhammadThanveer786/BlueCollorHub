@@ -1,6 +1,6 @@
-import connect from "../../../../../lib/mongodb";
-import Post from "../../../../../models/Post";
-import User from "../../../../../models/User";
+import connect from "../../../../lib/mongodb";
+import Post from "../../../../models/Post";
+import User from "../../../../models/User";
 
 export async function GET(req) {
   await connect();

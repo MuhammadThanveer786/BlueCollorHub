@@ -1,8 +1,8 @@
 // src/app/api/post/[postId]/comment/route.js
-import connect from "@lib/mongodb";         // Alias should work for root /lib
-import Post from "../../../../../../models/Post";   // Relative path from API route to root /models
-import User from "../../../../../../models/User";   // Relative path from API route to root /models
-import Notification from "../../../../../../models/Notification"; // 👈 Relative path for Notification model
+import connect from "@/lib/mongodb";         // Alias should work for root /lib
+import Post from "../../../../../models/Post";   // Relative path from API route to root /models
+import User from "../../../../../models/User";   // Relative path from API route to root /models
+import Notification from "../../../../../models/Notification"; // 👈 Relative path for Notification model
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import mongoose from "mongoose";

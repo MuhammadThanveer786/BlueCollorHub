@@ -1,6 +1,6 @@
-import connect from "@lib/mongodb";
-import Post from "@models/Post";
-import User from "@models/User"; // Import User to populate
+import connect from "@/lib/mongodb";
+import Post from "@/models/Post";
+import User from "@/models/User"; // Import User to populate
 import mongoose from "mongoose";
 
 export async function GET(req, { params }) {

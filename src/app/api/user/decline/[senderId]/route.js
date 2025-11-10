@@ -1,6 +1,6 @@
-import connect from "@lib/mongodb";
-import User from "@models/User";
-import Notification from "@models/Notification"; // ✅ Import Notification
+import connect from "@/lib/mongodb";
+import User from "@/models/User";
+import Notification from "@/models/Notification"; // ✅ Import Notification
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // ✅ Use alias
 import mongoose from "mongoose";

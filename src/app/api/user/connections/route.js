@@ -1,5 +1,5 @@
-import connect from "@lib/mongodb";
-import User from "@models/User";
+import connect from "@/lib/mongodb";
+import User from "@/models/User";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import mongoose from "mongoose";

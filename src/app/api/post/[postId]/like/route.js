@@ -1,7 +1,7 @@
 // src/app/api/post/[postId]/like/route.js
-import connect from "@lib/mongodb";
-import Post from "../../../../../../models/Post";
-import Notification from "../../../../../../models/Notification"; // Import Notification model
+import connect from "@/lib/mongodb";
+import Post from "../../../../../models/Post";
+import Notification from "../../../../../models/Notification"; // Import Notification model
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import mongoose from "mongoose";

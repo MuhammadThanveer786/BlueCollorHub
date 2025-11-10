@@ -1,6 +1,6 @@
 // src/app/api/notifications/mark-read/route.js
-import connect from "@lib/mongodb";                     // Correct alias
-import Notification from "@models/Notification"; // Correct relative path to root models
+import connect from "@/lib/mongodb";                     // Correct alias
+import Notification from "@/models/Notification"; // Correct relative path to root models
 import { getServerSession } from "next-auth/next";
 // Correct relative path from mark-read route to auth route (adjust if auth route is elsewhere)
 import { authOptions } from "../../auth/[...nextauth]/route";

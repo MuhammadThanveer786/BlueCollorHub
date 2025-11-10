@@ -1,5 +1,5 @@
-import connect from "@lib/mongodb";
-import Message from "@models/Message";
+import connect from "@/lib/mongodb";
+import Message from "@/models/Message";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { URL } from 'url';

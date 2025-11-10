@@ -1,8 +1,8 @@
 // src/app/api/notifications/route.js
-import connect from "@lib/mongodb"; // Adjust path if needed
-import Notification from "@models/Notification"; // Use alias
-import User from "@models/User";// Adjust path to User model
-import Post from "@models/Post";
+import connect from "@/lib/mongodb"; // Adjust path if needed
+import Notification from "@/models/Notification"; // Use alias
+import User from "@/models/User";// Adjust path to User model
+import Post from "@/models/Post";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route"; // Adjust path if needed
 import mongoose from "mongoose";

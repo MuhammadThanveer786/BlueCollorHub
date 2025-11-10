@@ -3,8 +3,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // Adjust this path if needed
-import dbConnect from "@/lib/dbConnect"; // Assuming you have this
-import User from "@/models/User"; // Assuming your model is named 'User'
+import dbConnect from "@/lib/dbConnect";
+import User from "@/models/User";
+
+
+ // Assuming your model is named 'User'
 import mongoose from "mongoose";
 
 export async function POST(request, { params }) {
